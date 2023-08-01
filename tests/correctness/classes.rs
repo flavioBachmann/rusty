@@ -145,3 +145,45 @@ fn use_method_to_change_field_in_super() {
     assert_eq!(m.x, 44);
     assert_eq!(m.y, 55);
 }
+
+#[test]
+fn variable_shadowing() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: i16,
+    }
+
+    let source = "
+        CLASS MyClass
+            VAR
+                x: INT;
+            END_VAR
+        END_CLASS
+
+        CLASS MyClass2 EXTENDS MyCLASS
+        VAR
+            x: INT;
+        END_VAR
+
+        METHOD change_x
+            x := 44;
+        END_METHOD
+        END_CLASS
+
+        PROGRAM main 
+        VAR
+          x : INT := 0;
+        END_VAR
+        VAR_TEMP
+            cl : MyClass2;
+        END_VAR
+        cl.change_x();
+        x := cl.x;
+        END_PROGRAM
+        ";
+
+    let mut m = MainType { x: 0 };
+    let _: i32 = compile_and_run(source, &mut m);
+    assert_eq!(m.x, 44);
+}
